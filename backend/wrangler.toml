@@ -1,6 +1,7 @@
 name = "backend"
 main = "src/index.ts"
 compatibility_date = "2023-03-31"
+usage_model = "bundled"
 
 [[ d1_databases ]]
 binding = "DB" # i.e. available in your Worker on env.DB
