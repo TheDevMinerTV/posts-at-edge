@@ -24,6 +24,20 @@ export interface Env {
   DB: D1Database;
 }
 
+const appendCORSHeaders = (response: Response) => {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  return response;
+};
+
 export default {
   async fetch(
     request: Request,
@@ -32,10 +46,12 @@ export default {
   ): Promise<Response> {
     const posts = await env.DB.prepare("SELECT * FROM posts").all();
 
-    return new Response(JSON.stringify(posts), {
-      headers: {
-        "content-type": "application/json; charset=UTF-8",
-      },
-    });
+    return appendCORSHeaders(
+      new Response(JSON.stringify(posts), {
+        headers: {
+          "content-type": "application/json; charset=UTF-8",
+        },
+      })
+    );
   },
 };
