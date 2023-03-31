@@ -1,3 +1,6 @@
+import { v4 as uuidV4 } from "uuid";
+import { z } from "zod";
+
 /**
  * Welcome to Cloudflare Workers! This is your first worker.
  *
@@ -24,6 +27,11 @@ export interface Env {
   DB: D1Database;
 }
 
+const CreatePostSchema = z.object({
+  username: z.string(),
+  content: z.string(),
+});
+
 const appendCORSHeaders = (response: Response) => {
   response.headers.set("Access-Control-Allow-Origin", "*");
   response.headers.set(
@@ -44,14 +52,32 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    const posts = await env.DB.prepare("SELECT * FROM posts").all();
+    if (request.method === "OPTIONS") {
+      return appendCORSHeaders(new Response());
+    } else if (request.method === "POST") {
+      const body = CreatePostSchema.parse(await request.json());
+
+      await env.DB.prepare(
+        "INSERT INTO posts (id, username, content, timestamp) VALUES (?, ?, ?, ?)"
+      )
+        .bind(uuidV4(), body.username, body.content, Date.now())
+        .run();
+
+      return appendCORSHeaders(new Response("OK"));
+    } else if (request.method === "GET") {
+      const posts = await env.DB.prepare("SELECT * FROM posts").all();
+
+      return appendCORSHeaders(
+        new Response(JSON.stringify(posts), {
+          headers: {
+            "content-type": "application/json; charset=UTF-8",
+          },
+        })
+      );
+    }
 
     return appendCORSHeaders(
-      new Response(JSON.stringify(posts), {
-        headers: {
-          "content-type": "application/json; charset=UTF-8",
-        },
-      })
+      new Response("Method not allowed", { status: 405 })
     );
   },
 };
