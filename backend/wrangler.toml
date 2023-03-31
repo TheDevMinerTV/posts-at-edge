@@ -1,3 +1,8 @@
 name = "backend"
 main = "src/index.ts"
 compatibility_date = "2023-03-31"
+
+[[ d1_databases ]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "posts-at-edge"
+database_id = "7fa2e885-191d-4c31-a32e-2033dd5faa53"
